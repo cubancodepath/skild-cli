@@ -24,6 +24,7 @@ func printHelp() {
 	fmt.Println("  install   Install one skill or --all")
 	fmt.Println("  list      List available skills")
 	fmt.Println("  repo-sync Clone/update cached repository")
+	fmt.Println("  update    Sync repo and reinstall all skills")
 	fmt.Println("  version   Show skild version")
 }
 
@@ -104,6 +105,26 @@ func runInstall(args []string) error {
 	return nil
 }
 
+func runUpdate() error {
+	skills, cfg, err := loadSkills()
+	if err != nil {
+		return err
+	}
+
+	if len(skills) == 0 {
+		fmt.Println("No skills found.")
+		return nil
+	}
+
+	installed, err := install.InstallAll(skills, cfg.OpenCodeDir)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Updated %d skills into %s\n", len(installed), cfg.OpenCodeDir)
+	return nil
+}
+
 func printConfig() error {
 	cfg, err := config.Load()
 	if err != nil {
@@ -157,6 +178,11 @@ func main() {
 	case "install":
 		if err := runInstall(os.Args[2:]); err != nil {
 			fmt.Printf("Install error: %v\n", err)
+			os.Exit(1)
+		}
+	case "update":
+		if err := runUpdate(); err != nil {
+			fmt.Printf("Update error: %v\n", err)
 			os.Exit(1)
 		}
 	case "version", "--version", "-v":
