@@ -1,1 +1,7 @@
 .DS_Store
+
+# Build and release artifacts
+dist/
+skild
+skild-linux-amd64
+skild-*
