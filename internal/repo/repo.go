@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/cubancodepath/skild/internal/config"
 )
@@ -50,12 +51,24 @@ func runGit(workdir string, args ...string) error {
 	if workdir != "" {
 		cmd.Dir = workdir
 	}
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("git %v: %w", args, err)
+	output, err := cmd.CombinedOutput()
+	if isVerbose() && len(output) > 0 {
+		fmt.Print(string(output))
+	}
+
+	if err != nil {
+		msg := strings.TrimSpace(string(output))
+		if msg == "" {
+			return fmt.Errorf("git %v: %w", args, err)
+		}
+		return fmt.Errorf("git %v failed: %s", args, msg)
 	}
 
 	return nil
+}
+
+func isVerbose() bool {
+	v := strings.ToLower(strings.TrimSpace(os.Getenv("SKILD_VERBOSE")))
+	return v == "1" || v == "true" || v == "yes"
 }
